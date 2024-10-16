@@ -9,18 +9,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Start timer
+        id: start_timer
+        run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - uses: actions/checkout@v3
+
       - name: Install zip tool
         uses: montudor/action-zip@v1
+
       - name: Create Zip file for Lambda function
         run: zip -r code.zip .
+
       - name: AWS CLI v2
         uses: imehedi/actions-awscli-v2@latest
         with:
-          args: "lambda update-function-code \
-            --function-name arn:aws:lambda:ca-central-1:654654208693:function:testfunction \
-            --zip-file fileb://code.zip"
+          args: |
+            lambda update-function-code \
+              --function-name arn:aws:lambda:ca-central-1:654654208693:function:testfunction \
+              --zip-file fileb://code.zip
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "ca-central-1"
+
+      - name: Stop timer and calculate duration
+        id: stop_timer
+        run: |
+          BUILD_END_TIME=$(date +%s)
+          BUILD_START_TIME=${{ steps.start_timer.outputs.start_time }}
+          BUILD_DURATION=$((BUILD_END_TIME - BUILD_START_TIME))
+          echo "Build duration: $BUILD_DURATION seconds"
+          echo "build_duration=$BUILD_DURATION" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Send build duration to Dynatrace
+        run: |
+          curl -X POST "${{ env.DYNATRACE_URL }}/api/v2/metrics/ingest" \
+            -H "Content-Type: text/plain; charset=utf-8" \
+            -H "Authorization: Api-Token ${{ env.DYNATRACE_API_TOKEN }}" \
+            --data "build.duration,build_name=deploy_lambda_function ${{
+              steps.stop_timer.outputs.build_duration }}"
+        env:
+          DYNATRACE_URL: ${{ secrets.DYNATRACE_URL }}
+          DYNATRACE_API_TOKEN: ${{ secrets.DYNATRACE_API_TOKEN }}
