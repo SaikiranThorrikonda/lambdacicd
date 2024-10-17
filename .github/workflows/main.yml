@@ -42,12 +42,14 @@ jobs:
           echo "BUILD_DURATION=$BUILD_DURATION" >> $GITHUB_ENV
           echo "Build duration: $BUILD_DURATION seconds"
         # sleep 10 (optional to test and induce lag in build duration)
+        # DYNATRACE_API_TOKEN stored in GitHub Secrets (secrets.DYNATRACE_API_TOKEN)
+        # DYNATRACE_URL stored in GitHub Variables (vars.DYNATRACE_URL)
         shell: bash
 
       - name: Send build duration to Dynatrace
         run: |
-          curl -X POST "${{ vars.DYNATRACE_URL }}/api/v2/metrics/ingest" \
+          curl -X POST "${{ env.DYNATRACE_URL }}/api/v2/metrics/ingest" \
             -H "Content-Type: ${{env.datatype}}" \
-            -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
+            -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \   
             --data-raw "github.build.metric,duration=seconds $BUILD_DURATION"
         shell: bash
