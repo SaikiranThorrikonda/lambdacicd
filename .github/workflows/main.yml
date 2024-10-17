@@ -49,8 +49,4 @@ jobs:
 
       - name: Send build duration to Dynatrace
         run: |
-          # curl -X POST "${{ env.DYNATRACE_URL }}/api/v2/metrics/ingest" \
-          #   -H "Content-Type: ${{env.datatype}}" \
-          #   -H "Authorization: Api-Token ${{ env.DYNATRACE_API_TOKEN }}" \
-          #   --data-raw "github.build.metric,duration=seconds 12"
           echo $BUILD_DURATION
