@@ -42,7 +42,7 @@ jobs:
           BUILD_END_TIME=$(date +%s)
           BUILD_START_TIME=${{ steps.start_timer.outputs.start_time }}
           echo "BUILD_DURATION=$((BUILD_END_TIME - BUILD_START_TIME))" >> $GITHUB_ENV
-          echo "Build duration: ${{ vars.BUILD_DURATION}} seconds"
+          echo "Build duration: $BUILD_DURATION seconds"
         shell: bash
 
 
@@ -51,5 +51,5 @@ jobs:
           curl -X POST "${{ env.DYNATRACE_URL }}/api/v2/metrics/ingest" \
             -H "Content-Type: ${{env.datatype}}" \
             -H "Authorization: Api-Token ${{ env.DYNATRACE_API_TOKEN }}" \
-            --data-raw "github.build.metric,duration=seconds ${{ vars.BUILD_DURATION}}"
+            --data-raw "github.build.metric,duration=seconds ${{ vars.BUILD_DURATION }}"
         shell: bash
