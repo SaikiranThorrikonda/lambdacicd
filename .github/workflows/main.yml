@@ -2,8 +2,7 @@ name: Deploy Lambda Function
 
 env:
   datatype: "text/plain"
-  DYNATRACE_URL: "https://xfp73156.live.dynatrace.com"
-
+  
 on:
   push:
     branches: [ main ]
