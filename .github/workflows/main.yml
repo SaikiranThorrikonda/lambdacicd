@@ -45,7 +45,6 @@ jobs:
           echo "Build duration: $BUILD_DURATION seconds"
           echo "build_duration=$BUILD_DURATION" >> $GITHUB_OUTPUT
         shell: bash
-
         env:
           DATA: "github.build.metric,duration=seconds 12"
 
