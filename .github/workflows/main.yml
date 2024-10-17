@@ -49,4 +49,4 @@ jobs:
 
       - name: Send build duration to Dynatrace
         run: |
-          echo $BUILD_DURATION
+          echo "$BUILD_DURATION"
