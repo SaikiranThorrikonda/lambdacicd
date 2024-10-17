@@ -2,7 +2,7 @@ name: Deploy Lambda Function
 
 env:
   datatype: "text/plain"
-  
+
 on:
   push:
     branches: [ main ]
