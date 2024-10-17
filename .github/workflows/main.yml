@@ -48,7 +48,7 @@ jobs:
           curl -X POST "${{ env.DYNATRACE_URL }}/api/v2/metrics/ingest" \
             -H "Content-Type: ${{env.datatype}}" \
             -H "Authorization: Api-Token ${{ env.DYNATRACE_API_TOKEN }}" \
-            --data-raw "github.build.duration,build_time=seconds $steps.stop_timer.outputs.build_duration"
+            --data-raw "github.build.duration,duration=seconds $steps.stop_timer.outputs.build_duration"
         env:
           DYNATRACE_URL: ${{ secrets.DYNATRACE_URL }}
           DYNATRACE_API_TOKEN: ${{ secrets.DYNATRACE_API_TOKEN }}
