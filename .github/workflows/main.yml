@@ -50,3 +50,4 @@ jobs:
       - name: Send build duration to Dynatrace
         run: |
           echo "$BUILD_DURATION"
+        shell: bash
