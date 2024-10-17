@@ -44,10 +44,10 @@ jobs:
           BUILD_DURATION=$((BUILD_END_TIME - BUILD_START_TIME))
           echo "Build duration: $BUILD_DURATION seconds"
           echo "build_duration=$BUILD_DURATION" >> $GITHUB_OUTPUT
+          curl -X POST "${{ env.DYNATRACE_URL }}/api/v2/metrics/ingest" \
+            -H "Content-Type: ${{env.datatype}}" \
+            -H "Authorization: Api-Token ${{ env.DYNATRACE_API_TOKEN }}" \
+            --data-raw "github.build.metric,duration=seconds $BUILD_DURATION"
         shell: bash
 
 
-      - name: Send build duration to Dynatrace
-        run: |
-          echo "$BUILD_DURATION"
-        shell: bash
