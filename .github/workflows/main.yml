@@ -42,10 +42,10 @@ jobs:
 
       - name: Send build duration to Dynatrace
         run: |
-          curl -X POST "${{ env.DYNATRACE_URL }}/api/v2/metrics/ingest" \
+          curl -X POST '${{ env.DYNATRACE_URL }}/api/v2/metrics/ingest" \
             -H "Content-Type: text/plain; charset=utf-8" \
             -H "Authorization: Api-Token ${{ env.DYNATRACE_API_TOKEN }}" \
-            --data "custom.metric.name,environment=production 42.7"
+            --data "build.duration,build_name=deploy_lambda_function ${{steps.stop_timer.outputs.build_duration }}"
         env:
           DYNATRACE_URL: ${{ secrets.DYNATRACE_URL }}
           DYNATRACE_API_TOKEN: ${{ secrets.DYNATRACE_API_TOKEN }}
