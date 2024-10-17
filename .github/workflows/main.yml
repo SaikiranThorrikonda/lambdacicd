@@ -1,11 +1,8 @@
 name: Deploy Lambda Function
 
-env:
-  datatype: "text/plain"
-
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   deploy:
@@ -14,24 +11,28 @@ jobs:
     steps:
       - name: Start timer
         id: start_timer
-        run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
+        run: |
+          echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
         shell: bash
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
       - name: Install zip tool
-        uses: montudor/action-zip@v1
+        run: sudo apt-get install zip -y
+
       - name: Create Zip file for Lambda function
         run: zip -r code.zip .
-      - name: AWS CLI v2
-        uses: imehedi/actions-awscli-v2@latest
+
+      - name: Update Lambda Function Code
+        uses: aws-actions/aws-cli@v1
         with:
-          args: "lambda update-function-code \
-            --function-name arn:aws:lambda:ca-central-1:654654208693:function:testfunction \
-            --zip-file fileb://code.zip"
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: "ca-central-1"
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: "ca-central-1"
+          cmd: |
+            lambda update-function-code \
+              --function-name arn:aws:lambda:ca-central-1:654654208693:function:testfunction \
+              --zip-file fileb://code.zip
 
       - name: Stop timer and calculate duration
         id: stop_timer
@@ -45,10 +46,8 @@ jobs:
 
       - name: Send build duration to Dynatrace
         run: |
-          curl -X POST "${{ env.DYNATRACE_URL }}/api/v2/metrics/ingest" \
-            -H "Content-Type: ${{env.datatype}}" \
-            -H "Authorization: Api-Token ${{ env.DYNATRACE_API_TOKEN }}" \
+          echo "Sending build duration: ${{ steps.stop_timer.outputs.build_duration }} seconds"
+          curl -X POST "${{ secrets.DYNATRACE_URL }}/api/v2/metrics/ingest" \
+            -H "Content-Type: text/plain" \
+            -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
             --data-raw "github.build.duration,build_time=seconds ${{ steps.stop_timer.outputs.build_duration }}"
-        env:
-          DYNATRACE_URL: ${{ secrets.DYNATRACE_URL }}
-          DYNATRACE_API_TOKEN: ${{ secrets.DYNATRACE_API_TOKEN }}
