@@ -3,8 +3,6 @@ name: Deploy Lambda Function
 env:
   datatype: "text/plain"
   DYNATRACE_URL: "https://xfp73156.live.dynatrace.com"
-  DYNATRACE_API_TOKEN: "dt0c01.5LZTAXJ4VNVIII3BEVFL7UI3.QCQZQWZYQEBCC4RG4ZQSJZQUSQRGF6CHHRUVW5G4LJDKVYNE6D657KSR26XK2RG5"
-
 
 on:
   push:
