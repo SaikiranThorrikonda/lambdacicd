@@ -1,8 +1,11 @@
 name: Deploy Lambda Function
 
+env:
+  datatype: "text/plain"
+
 on:
   push:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -11,19 +14,18 @@ jobs:
     steps:
       - name: Start timer
         id: start_timer
-        run: |
-          echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
+        run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
         shell: bash
 
       - uses: actions/checkout@v2
 
       - name: Install zip tool
-        run: montudor/action-zip@v1
+        uses: montudor/action-zip@v1
 
       - name: Create Zip file for Lambda function
         run: zip -r code.zip .
-
-      - name: Update Lambda Function Code
+        
+      - name: AWS CLI v2
         uses: imehedi/actions-awscli-v2@latest
         with:
           args: "lambda update-function-code \
@@ -42,51 +44,15 @@ jobs:
           BUILD_DURATION=$((BUILD_END_TIME - BUILD_START_TIME))
           echo "BUILD_DURATION=$BUILD_DURATION" >> $GITHUB_ENV
           echo "Build duration: $BUILD_DURATION seconds"
-          # sleep 10 (optional to test and induce lag in build duration)
+        # sleep 10 (optional to test and induce lag in build duration)
+        # DYNATRACE_API_TOKEN stored in GitHub Secrets (secrets.DYNATRACE_API_TOKEN)
+        # DYNATRACE_URL stored in GitHub Variables (vars.DYNATRACE_URL)
         shell: bash
-      # DYNATRACE_API_TOKEN stored in GitHub Secrets (secrets.DYNATRACE_API_TOKEN)
-      # DYNATRACE_URL stored in GitHub Variables (vars.DYNATRACE_URL)
 
       - name: Send build duration to Dynatrace
         run: |
-          echo "Sending build duration: $BUILD_DURATION seconds"
           curl -X POST "${{ vars.DYNATRACE_URL }}/api/v2/metrics/ingest" \
-            -H "Content-Type: text/plain" \
+            -H "Content-Type: ${{env.datatype}}" \
             -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
             --data-raw "github.build.metric,duration=seconds $BUILD_DURATION"
-        shell: bash
-
-      - name: Send build status to Dynatrace
-        if: always()
-        run: |
-          BUILD_STATUS="${{ job.status }}"
-          if [ "$BUILD_STATUS" == "success" ]; then
-            EVENT_TITLE="Build Succeeded"
-          else
-            EVENT_TITLE="Build Failed"
-          fi
-          echo "Sending build status: $BUILD_STATUS"
-
-          # Prepare the JSON payload
-          EVENT_PAYLOAD=$(cat <<EOF
-            {
-              "eventType": "CUSTOM_INFO",
-              "source": "GitHub Actions",
-              "description": "Build $BUILD_STATUS for job '${{ github.job }}' in workflow '${{ github.workflow }}'.",
-              "title": "$EVENT_TITLE",
-                  "customProperties": {
-                   "workflow": "${{ github.workflow }}",
-                   "job": "${{ github.job }}",
-                   "run_id": "${{ github.run_id }}",
-                   "run_number": "${{ github.run_number }}"
-                            }
-                  }
-                  EOF
-                  )
-
-          # Send the event to Dynatrace
-          curl -X POST "${{ secrets.DYNATRACE_URL }}/api/v1/events/ingest" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
-            -d "$EVENT_PAYLOAD"
         shell: bash
