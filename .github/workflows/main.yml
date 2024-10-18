@@ -69,20 +69,20 @@ jobs:
 
           # Prepare the JSON payload
           EVENT_PAYLOAD=$(cat <<EOF
-{
-  "eventType": "CUSTOM_INFO",
-  "source": "GitHub Actions",
-  "description": "Build $BUILD_STATUS for job '${{ github.job }}' in workflow '${{ github.workflow }}'.",
-  "title": "$EVENT_TITLE",
-  "customProperties": {
-    "workflow": "${{ github.workflow }}",
-    "job": "${{ github.job }}",
-    "run_id": "${{ github.run_id }}",
-    "run_number": "${{ github.run_number }}"
-  }
-}
-EOF
-          )
+            {
+              "eventType": "CUSTOM_INFO",
+              "source": "GitHub Actions",
+              "description": "Build $BUILD_STATUS for job '${{ github.job }}' in workflow '${{ github.workflow }}'.",
+              "title": "$EVENT_TITLE",
+                  "customProperties": {
+                   "workflow": "${{ github.workflow }}",
+                   "job": "${{ github.job }}",
+                   "run_id": "${{ github.run_id }}",
+                   "run_number": "${{ github.run_number }}"
+                            }
+                  }
+                  EOF
+                  )
 
           # Send the event to Dynatrace
           curl -X POST "${{ secrets.DYNATRACE_URL }}/api/v1/events/ingest" \
