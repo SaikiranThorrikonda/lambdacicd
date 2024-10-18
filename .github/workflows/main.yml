@@ -75,7 +75,7 @@ jobs:
               "source": "GitHub Actions",
               "description": "Build $BUILD_STATUS for job '${{ github.job }}' in workflow '${{ github.workflow }}'.",
               "title": "$EVENT_TITLE",
-              "customProperties": 
+              "properties": 
                 {
                   "workflow": "${{ github.workflow }}",
                   "job": "${{ github.job }}",
