@@ -83,7 +83,7 @@ jobs:
                     }
             }
             EOF
-            )
+          )
 
           curl -X POST "${{ secrets.DYNATRACE_URL }}/api/v1/events/ingest" \
             -H "Content-Type: application/json" \
