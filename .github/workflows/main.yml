@@ -75,14 +75,15 @@ jobs:
               "source": "GitHub Actions",
               "description": "Build $BUILD_STATUS for job '${{ github.job }}' in workflow '${{ github.workflow }}'.",
               "title": "$EVENT_TITLE",
-                  "customProperties": {
-                   "workflow": "${{ github.workflow }}",
-                   "job": "${{ github.job }}",
-                   "run_id": "${{ github.run_id }}",
-                   "run_number": "${{ github.run_number }}"
-                    }
+              "customProperties": 
+                {
+                  "workflow": "${{ github.workflow }}",
+                  "job": "${{ github.job }}",
+                  "run_id": "${{ github.run_id }}",
+                  "run_number": "${{ github.run_number }}"
+                }
             }
-            EOF
+          EOF
           )
 
           curl -X POST "${{ secrets.DYNATRACE_URL }}/api/v1/events/ingest" \
@@ -90,4 +91,3 @@ jobs:
             -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
             -d "$EVENT_PAYLOAD"
         shell: bash
-
