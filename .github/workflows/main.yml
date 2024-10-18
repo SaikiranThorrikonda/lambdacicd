@@ -66,32 +66,32 @@ jobs:
 
           # Prepare the JSON payload
           EVENT_PAYLOAD=$(cat <<EOF
+{
+  "eventType": "CUSTOM_INFO",
+  "source": "GitHub Actions",
+  "description": "Build $BUILD_STATUS for job '${{ github.job }}' in workflow '${{ github.workflow }}'.",
+  "title": "$EVENT_TITLE",
+  "attachRules": {
+    "tagRule": [
+      {
+        "meTypes": ["CUSTOM_DEVICE"],
+        "tags": [
           {
-            "eventType": "CUSTOM_INFO",
-            "source": "GitHub Actions",
-            "description": "Build $BUILD_STATUS for job '${{ github.job }}' in workflow '${{ github.workflow }}'.",
-            "title": "$EVENT_TITLE",
-            "attachRules": {
-              "tagRule": [
-                {
-                  "meTypes": ["CUSTOM_DEVICE"],
-                  "tags": [
-                    {
-                      "context": "CONTEXTLESS",
-                      "key": "GitHubRepository",
-                      "value": "${{ github.repository }}"
-                    }
-                  ]
-                }
-              ]
-            },
-            "customProperties": {
-              "workflow": "${{ github.workflow }}",
-              "job": "${{ github.job }}",
-              "run_id": "${{ github.run_id }}",
-              "run_number": "${{ github.run_number }}"
-            }
+            "context": "CONTEXTLESS",
+            "key": "GitHubRepository",
+            "value": "${{ github.repository }}"
           }
+        ]
+      }
+    ]
+  },
+  "customProperties": {
+    "workflow": "${{ github.workflow }}",
+    "job": "${{ github.job }}",
+    "run_id": "${{ github.run_id }}",
+    "run_number": "${{ github.run_number }}"
+  }
+}
 EOF
           )
 
