@@ -56,3 +56,38 @@ jobs:
             -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
             --data-raw "github.build.metric,duration=seconds $BUILD_DURATION"
         shell: bash
+        
+      - name: Send build status to Dynatrace
+        if: always()
+        run: |
+          BUILD_STATUS="${{ job.status }}"
+          if [ "$BUILD_STATUS" == "success" ]; then
+            EVENT_TITLE="Build Succeeded"
+          else
+            EVENT_TITLE="Build Failed"
+          fi
+          echo "Sending build status: $BUILD_STATUS"
+
+          # Prepare the JSON payload
+          EVENT_PAYLOAD=$(cat <<EOF
+            {
+              "eventType": "CUSTOM_INFO",
+              "source": "GitHub Actions",
+              "description": "Build $BUILD_STATUS for job '${{ github.job }}' in workflow '${{ github.workflow }}'.",
+              "title": "$EVENT_TITLE",
+                  "customProperties": {
+                   "workflow": "${{ github.workflow }}",
+                   "job": "${{ github.job }}",
+                   "run_id": "${{ github.run_id }}",
+                   "run_number": "${{ github.run_number }}"
+                    }
+            }
+            EOF
+            )
+
+          curl -X POST "${{ secrets.DYNATRACE_URL }}/api/v1/events/ingest" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
+            -d "$EVENT_PAYLOAD"
+        shell: bash
+
