@@ -86,7 +86,7 @@ jobs:
           EOF
           )
 
-          curl -X POST "${{ vars.DYNATRACE_URL }}/api/v1/events/ingest" \
+          curl -X POST "${{ vars.DYNATRACE_URL }}/api/v2/events/ingest" \
             -H "Content-Type: application/json" \
             -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
             -d "$EVENT_PAYLOAD"
