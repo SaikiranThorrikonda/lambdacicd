@@ -101,7 +101,7 @@ jobs:
         run: |
           echo "Sending build logs to Dynatrace"
           curl -X POST "${{ vars.DYNATRACE_URL }}/api/v2/logs/ingest" \
-            -H "Content-Type: text/plain" \
+            -H "Content-Type: application/json" \
             -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
-            --data-binary @build.log
+            -d @build.log
         shell: bash
