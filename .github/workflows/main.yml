@@ -81,7 +81,7 @@ jobs:
                   "actor": "${{ github.actor }}",
                   "repository": "${{ github.repository }}",
                   "commit_message": "${{ github.event.head_commit.message }}",
-                  "build_status": "$EVENT_TITLE"
+                  "build_status": "$EVENT_TITLE",
                   "build_duration": "$BUILD_DURATION",
                   "job": "${{ github.job }}",
                   "run_id": "${{ github.run_id }}",
