@@ -14,13 +14,10 @@ jobs:
     steps:
       - name: Initialize build log
         run: echo "Build log for ${{ github.workflow }} run ${{ github.run_id }}" > build.log
-             cat build.log
-        shell: bash
 
       - name: Start timer
         id: start_timer
         run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT 2>&1 | tee -a build.log
-             cat build.log
         shell: bash
 
       - uses: actions/checkout@v2
