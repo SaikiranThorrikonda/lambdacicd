@@ -12,29 +12,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Initialize build log
+        run: echo "Build log for ${{ github.workflow }} run ${{ github.run_id }}" > build.log
+
       - name: Start timer
         id: start_timer
-        run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
+        run: echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT 2>&1 | tee -a build.log
         shell: bash
 
       - uses: actions/checkout@v2
 
       - name: Install zip tool
-        uses: montudor/action-zip@v1
+        uses: montudor/action-zip@v1 2>&1 | tee -a build.log
 
       - name: Create Zip file for Lambda function
-        run: zip -r code.zip .
+        run: zip -r code.zip . 2>&1 | tee -a build.log
         
       - name: AWS CLI v2
-        uses: imehedi/actions-awscli-v2@latest
+        uses: imehedi/actions-awscli-v2@latest 2>&1 | tee -a build.log
         with:
           args: "lambda update-function-code \
             --function-name arn:aws:lambda:ca-central-1:654654208693:function:testfunction \
-            --zip-file fileb://code.zip"
+            --zip-file fileb://code.zip" 
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: "ca-central-1"
+        run: echo "push lambda function zip" 2>&1 | tee -a build.log
 
       - name: Stop timer and calculate duration
         id: stop_timer
@@ -43,21 +47,21 @@ jobs:
           BUILD_START_TIME=${{ steps.start_timer.outputs.start_time }}
           BUILD_DURATION=$((BUILD_END_TIME - BUILD_START_TIME))
           echo "BUILD_DURATION=$BUILD_DURATION" >> $GITHUB_ENV
-          echo "Build duration: $BUILD_DURATION seconds"
+          echo "Build duration: $BUILD_DURATION seconds" 2>&1 | tee -a build.log
         # sleep 10 (optional to test and induce lag in build duration)
         # DYNATRACE_API_TOKEN stored in GitHub Secrets (secrets.DYNATRACE_API_TOKEN)
         # DYNATRACE_URL stored in GitHub Variables (vars.DYNATRACE_URL)
         shell: bash
 
-      - name: Send build duration to Dynatrace
+      - name: Push - build duration metric to Dynatrace
         run: |
           curl -X POST "${{ vars.DYNATRACE_URL }}/api/v2/metrics/ingest" \
             -H "Content-Type: ${{env.datatype}}" \
             -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
-            --data-raw "github.build.metric,duration=seconds $BUILD_DURATION"
+            --data-raw "github.build.metric,duration=seconds $BUILD_DURATION" 2>&1 | tee -a build.log
         shell: bash
         
-      - name: Send build status to Dynatrace
+      - name: Push - build status event to Dynatrace
         if: always()
         run: |
           BUILD_STATUS="${{ job.status }}"
@@ -66,7 +70,7 @@ jobs:
           else
             EVENT_TITLE="Build Failed"
           fi
-          echo "Sending build status: $BUILD_STATUS"
+          echo "Sending build status: $BUILD_STATUS" 2>&1 | tee -a build.log
 
           # Prepare the JSON payload
           EVENT_PAYLOAD=$(cat <<EOF
@@ -89,5 +93,15 @@ jobs:
           curl -X POST "${{ vars.DYNATRACE_URL }}/api/v2/events/ingest" \
             -H "Content-Type: application/json" \
             -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
-            -d "$EVENT_PAYLOAD"
+            -d "$EVENT_PAYLOAD" 2>&1 | tee -a build.log
+        shell: bash
+        
+      - name: Send build logs to Dynatrace
+        if: always()
+        run: |
+          echo "Sending build logs to Dynatrace"
+          curl -X POST "${{ vars.DYNATRACE_URL }}/api/v2/logs/ingest" \
+            -H "Content-Type: text/plain" \
+            -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
+            --data-binary @build.log
         shell: bash
