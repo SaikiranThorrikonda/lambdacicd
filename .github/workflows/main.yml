@@ -29,7 +29,7 @@ jobs:
         run: zip -r code.zip . 2>&1 | tee -a build.log
         
       - name: AWS CLI v2
-        uses: imehedi/actions-awscli-v2@latest 2>&1 | tee -a build.log
+        uses: imehedi/actions-awscli-v2@latest 
         with:
           args: "lambda update-function-code \
             --function-name arn:aws:lambda:ca-central-1:654654208693:function:testfunction \
