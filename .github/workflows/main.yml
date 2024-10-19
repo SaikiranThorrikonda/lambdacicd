@@ -80,7 +80,7 @@ jobs:
                   "workflow": "${{ github.workflow }}",
                   "actor": "${{ github.actor }}",
                   "repository": "${{ github.repository }}",
-                  "event_name": "${{ github.event_name }}",
+                  "build_status": "${{ github.event_name }}",
                   "commit_message": "${{ github.event.head_commit.message }}",
                   "build_duration": "$BUILD_DURATION",
                   "job": "${{ github.job }}",
