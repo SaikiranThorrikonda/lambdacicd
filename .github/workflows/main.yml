@@ -1,7 +1,8 @@
 name: Deploy Lambda Function
 
 env:
-  datatype: "text/plain"
+  text_data: "text/plain"
+  json_data: "application/json"
 
 on:
   push:
@@ -52,7 +53,7 @@ jobs:
       - name: Push - build duration metric to Dynatrace
         run: |
           curl -X POST "${{ vars.DYNATRACE_URL }}/api/v2/metrics/ingest" \
-            -H "Content-Type: ${{env.datatype}}" \
+            -H "Content-Type: ${{ env.text_data }}" \
             -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
             --data-raw "github.build.metric,duration=seconds $BUILD_DURATION"
         shell: bash
@@ -92,7 +93,7 @@ jobs:
           )
 
           curl -X POST "${{ vars.DYNATRACE_URL }}/api/v2/events/ingest" \
-            -H "Content-Type: application/json" \
+            -H "Content-Type: ${{ env.json_data }}" \
             -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
             -d "$EVENT_PAYLOAD"
         shell: bash
