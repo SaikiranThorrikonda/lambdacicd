@@ -41,13 +41,16 @@ jobs:
         id: stop_timer
         run: |
           BUILD_END_TIME=$(date +%s)
+          repo=${{ github.repository }}
           BUILD_START_TIME=${{ steps.start_timer.outputs.start_time }}
           BUILD_DURATION=$((BUILD_END_TIME - BUILD_START_TIME))
           echo "BUILD_DURATION=$BUILD_DURATION" >> $GITHUB_ENV
           echo "Build duration: $BUILD_DURATION seconds"
+          
         # sleep 10 (optional to test and induce lag in build duration)
         # DYNATRACE_API_TOKEN stored in GitHub Secrets (secrets.DYNATRACE_API_TOKEN)
         # DYNATRACE_URL stored in GitHub Variables (vars.DYNATRACE_URL)
+
         shell: bash
 
       - name: Push - build duration metric to Dynatrace
@@ -55,7 +58,7 @@ jobs:
           curl -X POST "${{ vars.DYNATRACE_URL }}/api/v2/metrics/ingest" \
             -H "Content-Type: ${{ env.text_data }}" \
             -H "Authorization: Api-Token ${{ secrets.DYNATRACE_API_TOKEN }}" \
-            --data-raw "github.build.metric,duration=seconds $BUILD_DURATION"
+            --data-raw "github.build.metric,duration=seconds,repository=$repo $BUILD_DURATION"
         shell: bash
         
       - name: Push - build status event to Dynatrace
